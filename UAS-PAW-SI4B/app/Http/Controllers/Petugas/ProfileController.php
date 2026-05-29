@@ -17,12 +17,22 @@ class ProfileController extends Controller
         $this->userDao = $userDao;
     }
 
+    /**
+     * Menampilkan Halaman Edit Profil Petugas
+     */
     public function edit()
     {
         $user = Auth::user();
+        
+        // Membuka file di resources/views/Petugas/Profile/edit.blade.php
+        // Pastikan nama folder di laptopmu menggunakan huruf kapital (Petugas/Profile) 
+        // agar cocok dengan string di bawah ini.
         return view('Petugas.Profile.edit', compact('user'));
     }
 
+    /**
+     * Memproses Update Data Profil (Nama & Telepon)
+     */
     public function update(Request $request)
     {
         $data = $request->validate([
@@ -31,9 +41,14 @@ class ProfileController extends Controller
         ]);
 
         $this->userDao->update(Auth::id(), $data);
+        
+        // Perbaikan: Diubah ke huruf kecil semua agar sesuai dengan name('petugas.profile.edit') di web.php
         return redirect()->route('petugas.profile.edit')->with('success', 'Profil armada berhasil diupdate.');
     }
 
+    /**
+     * Memproses Perubahan Password Kerja Petugas
+     */
     public function updatePassword(Request $request)
     {
         $request->validate([
@@ -51,9 +66,13 @@ class ProfileController extends Controller
             'password' => Hash::make($request->password)
         ]);
 
+        // Perbaikan: Diubah ke huruf kecil semua
         return redirect()->route('petugas.profile.edit')->with('success', 'Sandi operasional berhasil diganti.');
     }
 
+    /**
+     * Memproses Sinkronisasi Koordinat GPS Fleet Kendaraan Petugas
+     */
     public function updateLocation(Request $request)
     {
         $request->validate([
@@ -61,7 +80,13 @@ class ProfileController extends Controller
             'longitude' => 'required|numeric',
         ]);
 
-        $this->userDao->updateLocation(Auth::id(), $request->latitude, $request->longitude);
+        // Mengirim data koordinat rill ke Data Access Object (DAO) untuk disimpan ke database
+        $this->userDao->update(Auth::id(), [
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude
+        ]);
+
+        // Perbaikan: Diubah ke huruf kecil semua
         return redirect()->route('petugas.profile.edit')->with('success', 'GPS tracking posisi armada berhasil diperbarui.');
     }
 }
