@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Services\ReportGenerator;
 use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf; // IMPORT FACADE PDF
 
 class ReportController extends Controller
 {
@@ -30,14 +31,14 @@ class ReportController extends Controller
         $month = $request->get('month', Carbon::now()->month);
         $year = $request->get('year', Carbon::now()->year);
         
+        // Ambil data
         $reportData = $this->reportGenerator->generateMonthlyReportData($month, $year);
 
-        // Menggunakan standard native rendering View HTML ke format cetak ekspor PDF
-        $html = view('Admin.Report.export_pdf', compact('reportData'))->render();
-        
-        // Logika konversi library (misal DomPDF) dijalankan di sini
-        return response($html)
-            ->header('Content-Type', 'application/pdf')
-            ->header('Content-Disposition', "attachment; filename=Laporan_P3ST_{$year}_{$month}.pdf");
+        // Load view dan konversi ke PDF secara teknis
+        $pdf = Pdf::loadView('Admin.Report.export_pdf', compact('reportData'))
+                  ->setPaper('a4', 'portrait');
+
+        // Mengembalikan file PDF asli, bukan HTML yang dipaksa jadi PDF
+        return $pdf->download("Laporan_P3ST_{$year}_{$month}.pdf");
     }
 }
