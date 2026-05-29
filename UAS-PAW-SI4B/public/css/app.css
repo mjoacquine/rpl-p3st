@@ -1,0 +1,60 @@
+/* Custom Global Styles P3ST */
+:root {
+    --p3st-green: #2e7d32;
+    --p3st-light-green: #e8f5e9;
+    --p3st-dark-green: #1b5e20;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+    color: #333;
+}
+
+/* Typography & Utilities */
+.text-p3st { color: var(--p3st-green) !important; }
+.bg-p3st { background-color: var(--p3st-green) !important; }
+.bg-p3st-light { background-color: var(--p3st-light-green) !important; }
+.tracking-wide { letter-spacing: 0.05em; }
+
+/* Buttons */
+.btn-p3st {
+    background-color: var(--p3st-green);
+    color: #ffffff;
+    border: none;
+    transition: background-color 0.3s ease;
+}
+
+.btn-p3st:hover {
+    background-color: var(--p3st-dark-green);
+    color: #ffffff;
+}
+
+/* Card Hover Effects */
+.card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+}
+
+/* Sidebar Admin Customization */
+.sidebar {
+    min-height: 100vh;
+    background-color: #ffffff;
+    box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+}
+
+.sidebar .list-group-item.active {
+    background-color: var(--p3st-light-green);
+    color: var(--p3st-dark-green);
+    border-color: transparent;
+    font-weight: bold;
+}
+
+/* Table Enhancements */
+.table-hover tbody tr:hover {
+    background-color: rgba(46, 125, 50, 0.05);
+}
