@@ -60,17 +60,58 @@ class ScheduleController extends Controller
             'notes' => $request->notes,
         ]);
 
-        // EKSEKUSI NOTIFIKASI TUGAS 3 & 4 (WHATSAPP INHERITANCE INJECTION)
         try {
             $notification = new WhatsappNotification();
             $notification->setRecipient(Auth::user()->phone)
-                         ->setMessage("Halo " . Auth::user()->name . ", booking penjemputan sampah terintegrasi Anda berhasil dibuat untuk tanggal " . $request->pickup_date . ". Status: MENUNGGU KLAIM PETUGAS.")
+                         ->setMessage("Halo " . Auth::user()->name . ", booking penjemputan sampah Anda berhasil dibuat. Status: MENUNGGU KLAIM PETUGAS.")
                          ->send();
         } catch (\Exception $e) {
-            // Abaikan error gateway agar testing offline lokal tetap mulus
+            // Abaikan error gateway jika offline
         }
 
-        return redirect()->route('warga.dashboard')->with('success', 'Jadwal berhasil diajukan! Notifikasi pesan berhasil dipicu.');
+        return redirect()->route('warga.dashboard')->with('success', 'Jadwal berhasil diajukan!');
+    }
+
+    /**
+     * BARU: Konfirmasi hasil timbangan oleh warga
+     */
+    public function confirm($id, WhatsappNotification $waService)
+    {
+        $schedule = Schedule::with('petugas')->where('warga_id', Auth::id())->findOrFail($id);
+
+        if ($schedule->status !== 'menunggu_konfirmasi') {
+            return redirect()->back()->with('error', 'Status transaksi tidak dapat dikonfirmasi.');
+        }
+
+        $schedule->update(['status' => 'selesai']);
+
+        // Notifikasi ke Petugas bahwa warga setuju
+        if ($schedule->petugas && $schedule->petugas->phone) {
+            $waService->setRecipient($schedule->petugas->phone)
+                      ->setMessage("Transaksi {$id} telah disetujui oleh warga. Transaksi SELESAI.")
+                      ->send();
+        }
+
+        return redirect()->route('warga.dashboard')->with('success', 'Transaksi disetujui! Struk nota siap dicetak.');
+    }
+
+    /**
+     * BARU: Pembatalan oleh warga karena tidak setuju harga
+     */
+    public function decline($id, WhatsappNotification $waService)
+    {
+        $schedule = Schedule::with('petugas')->where('warga_id', Auth::id())->findOrFail($id);
+
+        $schedule->update(['status' => 'batal']);
+
+        // Notifikasi ke Petugas bahwa warga membatalkan
+        if ($schedule->petugas && $schedule->petugas->phone) {
+            $waService->setRecipient($schedule->petugas->phone)
+                      ->setMessage("Mohon maaf, transaksi {$id} dibatalkan oleh warga.")
+                      ->send();
+        }
+
+        return redirect()->route('warga.dashboard')->with('error', 'Transaksi dibatalkan. Terima kasih atas konfirmasinya.');
     }
 
     public function cancel($id)
@@ -82,14 +123,19 @@ class ScheduleController extends Controller
         }
 
         $schedule->update(['status' => 'batal']);
-        return redirect()->route('warga.dashboard')->with('success', 'Penjadwalan penjemputan sampah berhasil dibatalkan.');
+        return redirect()->route('warga.dashboard')->with('success', 'Penjadwalan dibatalkan.');
     }
 
     public function receipt($id)
     {
-        // Dapat diakses oleh warga
-        $schedule = Schedule::with(['warga', 'petugas'])->findOrFail($id);
-        $transaction = Transaction::with('catalogPrice')->where('schedule_id', $schedule->id)->firstOrFail();
+        $schedule = Schedule::with(['warga', 'petugas'])->where('warga_id', Auth::id())->findOrFail($id);
+        
+        // Proteksi: Hanya bisa cetak jika sudah selesai
+        if ($schedule->status !== 'selesai') {
+            return redirect()->back()->with('error', 'Nota belum tersedia karena transaksi belum selesai.');
+        }
+
+        $transaction = Transaction::where('schedule_id', $schedule->id)->firstOrFail();
 
         return view('Warga.Schedule.receipt', compact('schedule', 'transaction'));
     }

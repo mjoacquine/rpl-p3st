@@ -10,33 +10,21 @@ class Schedule extends Model
 {
     use HasFactory, HasUuids;
 
+    protected $keyType = 'string';
+    public $incrementing = false;
+
     protected $fillable = [
-        'warga_id',
-        'petugas_id',
-        'pickup_date',
-        'pickup_time',
-        'estimated_weight',
-        'status',
-        'notes',
+        'warga_id', 'petugas_id', 'pickup_date', 'pickup_time', 
+        'estimated_weight', 'status', 'notes',
     ];
 
     protected $casts = [
         'pickup_date' => 'date',
+        'pickup_time' => 'datetime:H:i',
         'estimated_weight' => 'decimal:2',
     ];
 
-    public function warga()
-    {
-        return $this->belongsTo(User::class, 'warga_id');
-    }
-
-    public function petugas()
-    {
-        return $this->belongsTo(User::class, 'petugas_id');
-    }
-
-    public function transaction()
-    {
-        return $this->hasOne(Transaction::class, 'schedule_id');
-    }
+    public function warga() { return $this->belongsTo(User::class, 'warga_id'); }
+    public function petugas() { return $this->belongsTo(User::class, 'petugas_id'); }
+    public function transaction() { return $this->hasOne(Transaction::class, 'schedule_id'); }
 }

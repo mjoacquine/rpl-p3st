@@ -48,7 +48,7 @@
             <div class="card bg-p3st text-white border-0 shadow-sm rounded-3 p-3 h-100">
                 <small class="text-uppercase tracking-wide opacity-75 fw-bold">Total Keuntungan Terkumpul</small>
                 <h2 class="fw-bold my-2">Rp {{ number_format($totalTabungan, 0, ',', '.') }}</h2>
-                <p class="mb-0 small"><i class="fa-solid fa-wallet me-1"></i> Pembayaran langsung diserahkan tunai oleh kolektor di tempat.</p>
+                <p class="mb-0 small"><i class="fa-solid fa-wallet me-1"></i> Pembayaran tunai diserahkan oleh petugas.</p>
             </div>
         </div>
         <div class="col-md-6 mb-3">
@@ -65,7 +65,7 @@
     <div class="card border-0 shadow-sm rounded-3">
         <div class="card-header bg-white fw-bold py-3">
             <div class="d-flex justify-content-between align-items-center">
-                <span><i class="fa-solid fa-clock-rotate-left text-p3st me-2"></i>Riwayat Aktivitas Penjemputan Anda</span>
+                <span><i class="fa-solid fa-clock-rotate-left text-p3st me-2"></i>Riwayat Aktivitas Anda</span>
                 <a href="{{ route('warga.schedule.index') }}" class="btn btn-sm btn-outline-secondary">Lihat Semua</a>
             </div>
         </div>
@@ -73,11 +73,11 @@
             <table class="table table-hover align-middle mb-0 text-center">
                 <thead class="table-light">
                     <tr>
-                        <th>Tanggal & Jam Jemput</th>
-                        <th>Estimasi Berat</th>
-                        <th>Nama Petugas</th>
-                        <th>Status Sistem</th>
-                        <th class="pe-3 text-end">Aksi / Nota</th>
+                        <th>Jadwal</th>
+                        <th>Estimasi</th>
+                        <th>Petugas</th>
+                        <th>Status</th>
+                        <th class="pe-3 text-end">Aksi / Konfirmasi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -98,17 +98,31 @@
                         <td>
                             @if($sch->status == 'menunggu') <span class="badge bg-warning text-dark">Menunggu</span>
                             @elseif($sch->status == 'dikonfirmasi') <span class="badge bg-primary">Otw Lokasi</span>
+                            @elseif($sch->status == 'diproses') <span class="badge bg-info">Sedang Ditimbang</span>
+                            @elseif($sch->status == 'menunggu_konfirmasi') <span class="badge bg-warning text-dark">Perlu Konfirmasi</span>
                             @elseif($sch->status == 'selesai') <span class="badge bg-success">Selesai (Lunas)</span>
                             @else <span class="badge bg-danger">Batal</span> @endif
                         </td>
                         <td class="pe-3 text-end">
+                            {{-- Aksi Berdasarkan Status --}}
                             @if($sch->status == 'menunggu')
                                 <form action="{{ route('warga.schedule.cancel', $sch->id) }}" method="POST" onsubmit="return confirm('Yakin ingin membatalkan pesanan ini?');">
                                     @csrf
                                     <button type="submit" class="btn btn-sm btn-outline-danger fw-bold py-1 px-2"><i class="fa-solid fa-ban"></i> Batal</button>
                                 </form>
+                            @elseif($sch->status == 'menunggu_konfirmasi')
+                                <div class="d-flex justify-content-end gap-1">
+                                    <form action="{{ route('warga.schedule.confirm', $sch->id) }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-success fw-bold py-1 px-2" title="Setuju & Selesai"><i class="fa-solid fa-check"></i></button>
+                                    </form>
+                                    <form action="{{ route('warga.schedule.decline', $sch->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menolak hasil timbangan ini?');">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-danger fw-bold py-1 px-2" title="Tolak / Batal"><i class="fa-solid fa-xmark"></i></button>
+                                    </form>
+                                </div>
                             @elseif($sch->status == 'selesai')
-                                <a href="{{ route('warga.schedule.receipt', $sch->id) }}" target="_blank" class="btn btn-sm btn-dark fw-bold py-1 px-2"><i class="fa-solid fa-print text-success"></i> Struk</a>
+                                <a href="{{ route('warga.schedule.receipt', $sch->id) }}" target="_blank" class="btn btn-sm btn-dark fw-bold py-1 px-2"><i class="fa-solid fa-print text-success me-1"></i> Nota</a>
                             @else
                                 <span class="text-muted small">-</span>
                             @endif
@@ -116,9 +130,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="5" class="text-muted p-4">
-                            Belum ada riwayat penjadwalan. Silakan tekan tombol <strong>Buat Order Booking</strong> di atas.
-                        </td>
+                        <td colspan="5" class="text-muted p-4">Belum ada riwayat aktivitas.</td>
                     </tr>
                     @endforelse
                 </tbody>

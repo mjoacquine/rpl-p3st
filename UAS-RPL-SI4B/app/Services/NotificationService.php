@@ -26,5 +26,6 @@ abstract class NotificationService
         return $this;
     }
 
+    // Memaksa class turunannya (seperti WhatsappNotification) untuk wajib memiliki fungsi send()
     abstract public function send(): bool;
 }

@@ -49,4 +49,9 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI'),
     ],
 
+    // Konfigurasi WhatsApp API (Fonnte) untuk NotificationService
+    'whatsapp' => [
+        'api_key' => env('FONNTE_API_KEY'),
+    ],
+
 ];

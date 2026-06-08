@@ -28,10 +28,11 @@ class TransactionController extends Controller
     {
         $schedule = Schedule::with('warga')->findOrFail($scheduleId);
         $categories = $this->catalogDao->getAllCategories();
+        
         return view('Petugas.Transaction.edit', compact('schedule', 'categories'));
     }
 
-    public function update(Request $request, $scheduleId)
+    public function update(Request $request, $scheduleId, WhatsappNotification $waService)
     {
         $request->validate([
             'category_id' => 'required|exists:catalog_prices,category_id',
@@ -41,38 +42,76 @@ class TransactionController extends Controller
         $schedule = Schedule::with('warga')->findOrFail($scheduleId);
         $catalog = $this->catalogDao->findById($request->category_id);
 
+        // Kalkulasi harga final
         $priceFinal = $this->calculator->calculateEstimatedPrice(
             (float)$request->weight_actual, 
             (float)$catalog->price_per_kg
         );
 
-        Transaction::create([
-            'schedule_id' => $schedule->id,
-            'category_id' => $catalog->category_id,
-            'weight_actual' => $request->weight_actual,
-            'price_final' => $priceFinal,
-            'status' => 'selesai'
-        ]);
+        // 1. Simpan Transaksi dengan status 'menunggu_konfirmasi'
+        Transaction::updateOrCreate(
+            ['schedule_id' => $schedule->id],
+            [
+                'category_id' => $catalog->category_id,
+                'weight_actual' => $request->weight_actual,
+                'price_final' => $priceFinal,
+                'status' => 'menunggu_konfirmasi'
+            ]
+        );
 
-        $this->scheduleProcessor->completeSchedule($schedule);
+        // 2. Ubah status schedule menjadi 'menunggu_konfirmasi' 
+        // (Ini menahan status agar tidak 'selesai' sebelum warga klik Setuju)
+        $schedule->update(['status' => 'menunggu_konfirmasi']);
 
-        // EKSEKUSI NOTIFIKASI WA KEPADA WARGA SAAT SELESAI TIMBANG
-        try {
-            $notification = new WhatsappNotification();
-            $notification->setRecipient($schedule->warga->phone)
-                         ->setMessage("BANK SAMPAH P3ST: Transaksi selesai! Berat aktual: " . $request->weight_actual . " Kg, Dana tunai diserahkan: Rp " . number_format($priceFinal, 0, ',', '.'))
-                         ->send();
-        } catch (\Exception $e) {
-            // Silently skip
+        // 3. EKSEKUSI NOTIFIKASI WA (Instruksi Konfirmasi)
+        if (!empty($schedule->warga->phone) && $schedule->warga->phone !== '-') {
+            $message = "*BANK SAMPAH P3ST - KONFIRMASI*\n\n" .
+                       "Petugas telah menyelesaikan penimbangan:\n" .
+                       "Berat: *{$request->weight_actual} Kg*\n" .
+                       "Estimasi Dana: *Rp " . number_format($priceFinal, 0, ',', '.') . "*\n\n" .
+                       "Mohon segera buka Dashboard Web Anda untuk *Konfirmasi* atau *Batalkan* transaksi ini agar dana bisa diproses.";
+            
+            $waService->setRecipient($schedule->warga->phone)
+                      ->setMessage($message)
+                      ->send();
         }
 
-        return redirect()->route('petugas.dashboard')->with('success', 'Transaksi lunas berhasil dicatat dan struk digital siap dicetak.');
+        return redirect()->route('petugas.dashboard')->with('success', 'Timbangan berhasil dikirim. Menunggu persetujuan warga.');
+    }
+
+    /**
+     * Membatalkan Transaksi (Bisa dilakukan petugas jika terjadi kesalahan)
+     */
+    public function cancel($scheduleId, WhatsappNotification $waService)
+    {
+        $schedule = Schedule::with('warga')->findOrFail($scheduleId);
+        
+        // Ubah status menjadi 'batal'
+        $schedule->update(['status' => 'batal']);
+
+        // Notifikasi pembatalan
+        if (!empty($schedule->warga->phone) && $schedule->warga->phone !== '-') {
+            $message = "*BANK SAMPAH P3ST*\n\n" .
+                       "Maaf, transaksi penjemputan Anda dibatalkan oleh petugas. Silakan hubungi admin jika ada kendala.";
+            
+            $waService->setRecipient($schedule->warga->phone)
+                      ->setMessage($message)
+                      ->send();
+        }
+
+        return redirect()->route('petugas.dashboard')
+            ->with('error', 'Penjemputan telah dibatalkan.');
     }
 
     public function receipt($scheduleId)
     {
-        // Dapat diakses oleh petugas pengepul
         $schedule = Schedule::with(['warga', 'petugas'])->findOrFail($scheduleId);
+        
+        // Validasi: Nota hanya bisa dicetak jika status sudah 'selesai'
+        if ($schedule->status !== 'selesai') {
+            return redirect()->back()->with('error', 'Nota hanya bisa dicetak setelah transaksi selesai dikonfirmasi.');
+        }
+
         $transaction = Transaction::with('catalogPrice')->where('schedule_id', $schedule->id)->firstOrFail();
 
         return view('Warga.Schedule.receipt', compact('schedule', 'transaction'));

@@ -1,12 +1,11 @@
-<div>
-    <!-- Life is available only in the present moment. - Thich Nhat Hanh -->
-</div>
 @extends('Layouts.Petugas')
 
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
     <h2 class="fw-bold"><i class="fa-solid fa-route text-primary me-2"></i>Navigasi Rute Penjemputan</h2>
-    <a href="{{ route('petugas.dashboard') }}" class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-arrow-left me-1"></i> Kembali</a>
+    <a href="{{ route('petugas.dashboard') }}" class="btn btn-sm btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i> Kembali
+    </a>
 </div>
 
 <div class="row">
@@ -25,24 +24,34 @@
                     <span class="badge bg-danger rounded-pill">{{ number_format($targetRoute->calculated_distance_meters / 1000, 2) }} KM</span>
                 </div>
                 
-                <a href="{{ route('petugas.transaction.edit', $targetRoute->id) }}" class="btn btn-success w-100 fw-bold shadow-sm mt-2"><i class="fa-solid fa-scale-balanced me-1"></i> Mulai Proses Penimbangan</a>
+                <form action="{{ route('petugas.task.arrived', $targetRoute->id) }}" method="POST" class="mt-4">
+                    @csrf
+                    <button type="submit" class="btn btn-success w-100 fw-bold shadow-sm py-2" onclick="return confirm('Kirim notifikasi WhatsApp ke warga bahwa Anda sudah tiba di lokasi?');">
+                        <i class="fa-solid fa-bell me-2"></i> Konfirmasi Sampai
+                    </button>
+                </form>
+                <p class="text-center text-muted mt-2 mb-0" style="font-size: 11px;">
+                    Menekan tombol ini akan mengirim WA otomatis ke warga dan mengarahkan Anda ke form timbangan.
+                </p>
             </div>
         </div>
     </div>
+
     <div class="col-md-8 mb-4">
         <div class="card border-0 shadow-sm rounded-3 overflow-hidden h-100">
             <div class="bg-dark text-white p-2 text-center small fw-bold">
                 <a href="https://www.google.com/maps/dir/?api=1&origin={{ $petugas->latitude }},{{ $petugas->longitude }}&destination={{ $targetRoute->warga->latitude }},{{ $targetRoute->warga->longitude }}&travelmode=driving" target="_blank" class="text-white text-decoration-none">
-                    <i class="fa-solid fa-external-link-alt me-1"></i> Buka Aplikasi Google Maps
+                    <i class="fa-solid fa-external-link-alt me-1"></i> Buka Navigasi di Aplikasi Google Maps
                 </a>
             </div>
+            
             <iframe 
                 width="100%" 
                 height="400" 
                 style="border:0;" 
                 loading="lazy" 
                 allowfullscreen 
-                src="https://maps.google.com/maps?q={{ $targetRoute->warga->latitude }},{{ $targetRoute->warga->longitude }}&t=&z=15&ie=UTF8&iwloc=&output=embed">
+                src="https://maps.google.com/maps?q={{ $targetRoute->warga->latitude }},{{ $targetRoute->warga->longitude }}&z=15&output=embed">
             </iframe>
         </div>
     </div>

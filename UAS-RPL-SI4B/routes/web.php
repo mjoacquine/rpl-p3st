@@ -1,29 +1,14 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
-// Controller Utama
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
+use Illuminate\Http\Request;
 use App\Http\Controllers\AuthController;
 
-// Controller Admin
-use App\Http\Controllers\Admin\DashboardController as AdminDashboard;
-use App\Http\Controllers\Admin\CatalogController as AdminCatalog;
-use App\Http\Controllers\Admin\ReportController as AdminReport;
-use App\Http\Controllers\Admin\UserController as AdminUser;
-
-// Controller Petugas
-use App\Http\Controllers\Petugas\DashboardController as PetugasDashboard;
-use App\Http\Controllers\Petugas\ProfileController as PetugasProfile;
-use App\Http\Controllers\Petugas\RouteController as PetugasRoute;
-use App\Http\Controllers\Petugas\TaskController as PetugasTask;
-use App\Http\Controllers\Petugas\TransactionController as PetugasTransaction;
-
-// Controller Warga
-use App\Http\Controllers\Warga\DashboardController as WargaDashboard;
-use App\Http\Controllers\Warga\CatalogController as WargaCatalog;
-use App\Http\Controllers\Warga\EcoStatsController as WargaEcoStats;
-use App\Http\Controllers\Warga\ProfileController as WargaProfile;
-use App\Http\Controllers\Warga\ScheduleController as WargaSchedule;
+// Controller Admin, Petugas, Warga
+use App\Http\Controllers\Admin\{DashboardController as AdminDashboard, CatalogController as AdminCatalog, ReportController as AdminReport, UserController as AdminUser};
+use App\Http\Controllers\Petugas\{DashboardController as PetugasDashboard, ProfileController as PetugasProfile, RouteController as PetugasRoute, TaskController as PetugasTask, TransactionController as PetugasTransaction};
+use App\Http\Controllers\Warga\{DashboardController as WargaDashboard, CatalogController as WargaCatalog, EcoStatsController as WargaEcoStats, ProfileController as WargaProfile, ScheduleController as WargaSchedule};
 
 /*
 |--------------------------------------------------------------------------
@@ -38,64 +23,76 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [AuthController::class, 'processLogin']);
     Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
     Route::post('/register', [AuthController::class, 'processRegister']);
+    
+    Route::get('/auth/google', [AuthController::class, 'redirectToGoogle'])->name('auth.google');
+    Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback']);
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
+Route::middleware('auth')->group(function () {
+    Route::get('/email/verify', function () { return view('Auth.verify-email'); })->name('verification.notice');
+    Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
+        $request->fulfill();
+        return redirect()->route('warga.dashboard')->with('success', 'Email berhasil diverifikasi!');
+    })->middleware('signed')->name('verification.verify');
+    Route::post('/email/verification-notification', function (Request $request) {
+        $request->user()->sendEmailVerificationNotification();
+        return back()->with('message', 'Link verifikasi telah dikirim ulang!');
+    })->middleware('throttle:6,1')->name('verification.send');
+});
+
 /*
 |--------------------------------------------------------------------------
-| Warga Routes (Portal Pelanggan)
+| Portal Routes (Dilindungi RoleMiddleware)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'role:warga'])->prefix('warga')->name('warga.')->group(function () {
+
+// --- WARGA ROUTES ---
+Route::middleware(['role:warga'])->prefix('warga')->name('warga.')->group(function () {
     Route::get('/dashboard', [WargaDashboard::class, 'index'])->name('dashboard');
     
-    // Alur Transaksi & Penjadwalan Warga
+    // Schedule & Transaksi (Ditambahkan Konfirmasi & Decline)
     Route::resource('schedule', WargaSchedule::class)->only(['index', 'create', 'store']);
     Route::post('/schedule/{id}/cancel', [WargaSchedule::class, 'cancel'])->name('schedule.cancel');
     Route::get('/schedule/{id}/receipt', [WargaSchedule::class, 'receipt'])->name('schedule.receipt');
     
+    // NEW: Konfirmasi & Decline untuk Warga
+    Route::post('/schedule/{id}/confirm', [WargaSchedule::class, 'confirm'])->name('schedule.confirm');
+    Route::post('/schedule/{id}/decline', [WargaSchedule::class, 'decline'])->name('schedule.decline');
+
+    // Catalog, Stats, Profile
     Route::get('/catalog', [WargaCatalog::class, 'index'])->name('catalog.index');
     Route::get('/ecostats', [WargaEcoStats::class, 'index'])->name('ecostats.index');
-    
-    // Manajemen Akun & Profil Warga (Termasuk Password & GPS Lokasi Rumah)
     Route::get('/profile', [WargaProfile::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [WargaProfile::class, 'update'])->name('profile.update');
     Route::put('/profile/password', [WargaProfile::class, 'updatePassword'])->name('profile.password');
     Route::put('/profile/location', [WargaProfile::class, 'updateLocation'])->name('profile.location');
 });
 
-/*
-|--------------------------------------------------------------------------
-| Petugas Routes (Portal Pengepul)
-|--------------------------------------------------------------------------
-*/
-Route::middleware(['auth', 'role:petugas'])->prefix('petugas')->name('petugas.')->group(function () {
+// --- PETUGAS ROUTES ---
+Route::middleware(['role:petugas'])->prefix('petugas')->name('petugas.')->group(function () {
     Route::get('/dashboard', [PetugasDashboard::class, 'index'])->name('dashboard');
-    
     Route::get('/task', [PetugasTask::class, 'index'])->name('task.index');
     Route::post('/task/{id}/accept', [PetugasTask::class, 'accept'])->name('task.accept');
-    
+    Route::post('/task/{id}/arrived', [PetugasTask::class, 'arrived'])->name('task.arrived');
+
     Route::get('/route/{scheduleId}', [PetugasRoute::class, 'show'])->name('route.show');
+    Route::get('/route/optimize-all', [PetugasRoute::class, 'optimizeAll'])->name('route.optimizeAll');
     
-    // Input Timbangan & Akses Nota Struk Lapangan
     Route::get('/transaction/{scheduleId}/edit', [PetugasTransaction::class, 'edit'])->name('transaction.edit');
     Route::put('/transaction/{scheduleId}', [PetugasTransaction::class, 'update'])->name('transaction.update');
+    Route::post('/transaction/{scheduleId}/cancel', [PetugasTransaction::class, 'cancel'])->name('transaction.cancel');
     Route::get('/transaction/{scheduleId}/receipt', [PetugasTransaction::class, 'receipt'])->name('transaction.receipt');
     
-    // Manajemen Akun Profil & GPS Petugas
     Route::get('/profile', [PetugasProfile::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [PetugasProfile::class, 'update'])->name('profile.update');
     Route::put('/profile/password', [PetugasProfile::class, 'updatePassword'])->name('profile.password');
     Route::put('/profile/location', [PetugasProfile::class, 'updateLocation'])->name('profile.location');
 });
 
-/*
-|--------------------------------------------------------------------------
-| Admin Routes (Portal Manajemen)
-|--------------------------------------------------------------------------
-*/
-Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+// --- ADMIN ROUTES ---
+Route::middleware(['role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboard::class, 'index'])->name('dashboard');
     Route::resource('catalog', AdminCatalog::class)->except(['show']);
     Route::get('/user', [AdminUser::class, 'index'])->name('user.index');

@@ -6,41 +6,36 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Notifications\VerifyEmailNotification;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens, HasFactory, Notifiable;
 
     protected $fillable = [
-        'name',
-        'email',
-        'password',
-        'role',
-        'phone',
-        'address',
-        'latitude',
-        'longitude',
+        'name', 'email', 'password', 'role', 'phone', 'address', 'latitude', 'longitude', 'google_id',
     ];
 
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
+    protected $hidden = ['password', 'remember_token'];
 
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
-        'latitude' => 'decimal:8',
-        'longitude' => 'decimal:8',
+        'latitude' => 'decimal:10',
+        'longitude' => 'decimal:10',
     ];
 
-    // Relasi: Warga memiliki banyak jadwal booking
+    public function sendEmailVerificationNotification()
+    {
+        $this->notify(new VerifyEmailNotification);
+    }
+
     public function schedulesAsWarga()
     {
         return $this->hasMany(Schedule::class, 'warga_id');
     }
 
-    // Relasi: Petugas ditugaskan pada banyak jadwal penjemputan
     public function schedulesAsPetugas()
     {
         return $this->hasMany(Schedule::class, 'petugas_id');

@@ -3,22 +3,28 @@
 @section('global-content')
 <div class="container d-flex justify-content-center align-items-center min-vh-100 py-5">
     <div class="card p-4 shadow-lg border-0 rounded-4" style="width: 100%; max-width: 500px;">
+        
         <div class="text-center mb-4">
-            <h3 class="fw-bold text-p3st"><i class="fa-solid fa-user-plus me-2"></i>Daftar Warga</h3>
+            <h3 class="fw-bold text-success"><i class="fa-solid fa-user-plus me-2"></i>Daftar Akun Baru</h3>
             <small class="text-muted">Bergabunglah dalam program ekonomi sirkular P3ST</small>
         </div>
         
         @if($errors->any())
-            <div class="alert alert-danger p-2 small border-0 rounded-3">
-                @foreach($errors->all() as $error) <div><i class="fa-solid fa-circle-exclamation me-1"></i> {{ $error }}</div> @endforeach
+            <div class="alert alert-danger p-2 small border-0 rounded-3 mb-3">
+                @foreach($errors->all() as $error) 
+                    <div><i class="fa-solid fa-circle-exclamation me-1"></i> {{ $error }}</div> 
+                @endforeach
             </div>
         @endif
 
         <form action="{{ route('register') }}" method="POST">
             @csrf
+            
+            <input type="hidden" name="role" value="warga">
+
             <div class="mb-3">
                 <label class="form-label small fw-bold">Nama Lengkap</label>
-                <input type="text" name="name" class="form-control" value="{{ old('name') }}" placeholder="Sesuai KTP" required autofocus>
+                <input type="text" name="name" class="form-control" value="{{ old('name') }}" placeholder="Sesuai KTP" required>
             </div>
             
             <div class="mb-3">
@@ -47,9 +53,20 @@
                 </div>
             </div>
 
-            <button type="submit" class="btn btn-p3st w-100 py-2 fw-bold shadow-sm">Daftar Sekarang</button>
+            <button type="submit" class="btn btn-success w-100 py-2 fw-bold shadow-sm mb-3">Daftar Sekarang</button>
         </form>
-        <div class="text-center mt-4 small">
+
+        <div class="d-flex align-items-center mb-3">
+            <hr class="flex-grow-1">
+            <span class="mx-2 text-muted small">ATAU</span>
+            <hr class="flex-grow-1">
+        </div>
+
+        <a href="{{ route('auth.google') }}" class="btn btn-outline-dark w-100 py-2 fw-bold mb-3">
+            <i class="fa-brands fa-google text-danger me-2"></i> Daftar dengan Google
+        </a>
+
+        <div class="text-center mt-3 small">
             Sudah memiliki akun? <a href="{{ route('login') }}" class="text-success fw-bold text-decoration-none">Masuk di sini</a>
         </div>
     </div>
