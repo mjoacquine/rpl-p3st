@@ -34,6 +34,8 @@ class ReportController extends Controller
         // Ambil data
         $reportData = $this->reportGenerator->generateMonthlyReportData($month, $year);
 
+
+        // dd($reportData); // Debug data sebelum diubah jadi PDF
         // Load view dan konversi ke PDF secara teknis
         $pdf = Pdf::loadView('Admin.Report.export_pdf', compact('reportData'))
                   ->setPaper('a4', 'portrait');

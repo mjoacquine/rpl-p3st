@@ -18,7 +18,8 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('password123'),
                 'role' => 'admin',
                 'phone' => '081234567890',
-                'address' => 'Kantor P3ST Pusat Palembang'
+                'address' => 'Kantor P3ST Pusat Palembang',
+                'email_verified_at' => now(),
             ]
         );
 
@@ -32,6 +33,7 @@ class UserSeeder extends Seeder
                 'phone' => '081298765432',
                 'latitude' => -2.990934,
                 'longitude' => 104.756554,
+                'email_verified_at' => now(),
             ]
         );
 
@@ -46,6 +48,7 @@ class UserSeeder extends Seeder
                 'address' => 'Jl. Jendral Sudirman, Palembang',
                 'latitude' => -2.976073,
                 'longitude' => 104.745435,
+                'email_verified_at' => now(),
             ]
         );
 
@@ -60,6 +63,7 @@ class UserSeeder extends Seeder
                 'address' => 'Jl. Veteran, Palembang',
                 'latitude' => -2.970123,
                 'longitude' => 104.750123,
+                'email_verified_at' => now(),
             ]
         );
     }

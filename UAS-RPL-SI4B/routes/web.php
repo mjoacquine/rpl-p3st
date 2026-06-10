@@ -49,7 +49,7 @@ Route::middleware('auth')->group(function () {
 */
 
 // --- WARGA ROUTES ---
-Route::middleware(['role:warga'])->prefix('warga')->name('warga.')->group(function () {
+Route::middleware(['auth', 'role:warga'])->prefix('warga')->name('warga.')->group(function () {
     Route::get('/dashboard', [WargaDashboard::class, 'index'])->name('dashboard');
     
     // Schedule & Transaksi (Ditambahkan Konfirmasi & Decline)

@@ -50,7 +50,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach($reportData['transactions'] as $index => $t)
+            @foreach($reportData['raw_transactions'] as $index => $t)
             <tr>
                 <td>{{ $index + 1 }}</td>
                 <td>{{ \Carbon\Carbon::parse($t->created_at)->format('d-m-Y') }}</td>
