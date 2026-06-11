@@ -4,11 +4,10 @@ namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use App\Models\Schedule; // Pastikan ini mengarah ke model Jadwal kalian
+use App\Models\Schedule; 
 
-class PickupReminder extends Notification implements ShouldQueue
+class PickupReminder extends Notification 
 {
     use Queueable;
 
@@ -20,45 +19,24 @@ class PickupReminder extends Notification implements ShouldQueue
      */
     public function __construct(Schedule $schedule, $roleTarget)
     {
-        // Menerima data jadwal dan peran (warga atau petugas) dari Command
         $this->schedule = $schedule;
         $this->roleTarget = $roleTarget; 
     }
 
     /**
-     * Get the notification's delivery channels.
-     *
-     * @return array<int, string>
-     */
-    /**
-     * Tentukan jalur pengiriman notifikasi.
+     * Tentukan jalur pengiriman notifikasi (Wajib 'database' agar masuk ke lonceng)
      */
     public function via($notifiable)
     {
-        // ❌ KEMUNGKINAN SEBELUMNYA: return ['mail']; atau kosong
-        // ✅ UBAH MENJADI INI AGAR DISIMPAN KE TABEL MYSQL:
         return ['database']; 
     }
 
     /**
-     * Tentukan format data yang akan disimpan ke dalam kolom 'data' di MySQL.
-     * (Harus pakai title dan message karena file Blade kamu memanggil nama itu)
-     */
-    public function toArray($notifiable)
-    {
-        return [
-            'title' => 'Pengingat Penjemputan',
-            'message' => 'Halo! Anda memiliki jadwal penjemputan sampah yang harus diproses.'
-        ];
-    }
-    /**
-     * Get the array representation of the notification.
-     *
-     * @return array<string, mixed>
+     * Format pesan yang akan masuk ke tabel MySQL dan dibaca oleh sistem Lonceng
      */
     public function toDatabase(object $notifiable): array
     {
-        // Logika percabangan pesan berdasarkan siapa yang menerima notifikasi
+        // Logika percabangan pesan
         if ($this->roleTarget === 'warga') {
             
             $namaPetugas = $this->schedule->petugas->name ?? 'Petugas P3ST';
@@ -72,15 +50,18 @@ class PickupReminder extends Notification implements ShouldQueue
             $pesan = "Halo! Besok Anda memiliki jadwal penjemputan di lokasi {$namaWarga} ({$alamatWarga}). Tolong dicek rutenya ya!";
             $judul = "Jadwal Tugas Besok";
             
+        } else {
+            // Jaga-jaga kalau role-nya tidak terbaca
+            $judul = "Pengingat Sistem P3ST";
+            $pesan = "Anda memiliki pemberitahuan baru terkait jadwal penjemputan.";
         }
 
-        // Data yang akan disimpan ke dalam kolom 'data' (format JSON) di tabel notifications
         return [
             'schedule_id' => $this->schedule->id,
-            'title' => $judul,
-            'message' => $pesan,
-            'type' => 'pickup_reminder',
-            'pickup_date' => $this->schedule->date,
+            'title'       => $judul,
+            'message'     => $pesan,
+            'type'        => 'pickup_reminder',
+            'pickup_time' => $this->schedule->pickup_time, // ✅ Sudah diganti agar tidak error!
         ];
     }
 }
