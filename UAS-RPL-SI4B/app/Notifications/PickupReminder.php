@@ -30,12 +30,27 @@ class PickupReminder extends Notification implements ShouldQueue
      *
      * @return array<int, string>
      */
-    public function via(object $notifiable): array
+    /**
+     * Tentukan jalur pengiriman notifikasi.
+     */
+    public function via($notifiable)
     {
-        // Menggunakan channel 'database' agar tersimpan di tabel notifications
+        // ❌ KEMUNGKINAN SEBELUMNYA: return ['mail']; atau kosong
+        // ✅ UBAH MENJADI INI AGAR DISIMPAN KE TABEL MYSQL:
         return ['database']; 
     }
 
+    /**
+     * Tentukan format data yang akan disimpan ke dalam kolom 'data' di MySQL.
+     * (Harus pakai title dan message karena file Blade kamu memanggil nama itu)
+     */
+    public function toArray($notifiable)
+    {
+        return [
+            'title' => 'Pengingat Penjemputan',
+            'message' => 'Halo! Anda memiliki jadwal penjemputan sampah yang harus diproses.'
+        ];
+    }
     /**
      * Get the array representation of the notification.
      *

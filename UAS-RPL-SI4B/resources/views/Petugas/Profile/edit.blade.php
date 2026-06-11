@@ -64,19 +64,19 @@
                         <div class="col-6">
                             <label class="small text-muted">Current Lat</label>
                             <input type="text" name="latitude" id="petugasLat" class="form-control bg-light text-center"
-                                value="{{ $user->latitude }}" readonly required>
+                                value="{{ $user->latitude }}" required>
                         </div>
                         <div class="col-6">
                             <label class="small text-muted">Current Lng</label>
                             <input type="text" name="longitude" id="petugasLng"
-                                class="form-control bg-light text-center" value="{{ $user->longitude }}" readonly
+                                class="form-control bg-light text-center" value="{{ $user->longitude }}" 
                                 required>
                         </div>
                     </div>
                     <div class="d-grid gap-2">
                         <button type="button" class="btn btn-outline-success fw-bold" onclick="getPetugasGPS()">Ping
                             Posisi Fleet</button>
-                        <button type="submit" id="btnSavePetugasGPS" class="btn btn-dark fw-bold" disabled>Simpan
+                        <button type="submit" id="btnSavePetugasGPS" class="btn btn-dark fw-bold">Simpan
                             Koordinat</button>
                     </div>
                 </form>
@@ -92,31 +92,46 @@
 
 @section('scripts')
 <script>
+    // FUNGSI 1: Untuk mendeteksi GPS Otomatis (Auto-Ping)
     function getPetugasGPS() {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(function (position) {
-                // 1. Ambil nilai koordinat rill dari GPS perangkat
                 const lat = position.coords.latitude;
                 const lng = position.coords.longitude;
 
-                // 2. Masukkan angka koordinat ke dalam input form box
                 document.getElementById("petugasLat").value = lat;
                 document.getElementById("petugasLng").value = lng;
-
-                // 3. Aktifkan tombol simpan
-                document.getElementById("btnSavePetugasGPS").disabled = false;
-
-                // 4. Tambahan: Paksa iframe peta untuk memperbarui posisinya secara real-time
-                const iframePeta = document.querySelector("iframe");
-                if (iframePeta) {
-                    iframePeta.src = `https://maps.google.com/maps?q=${lat},${lng}&t=&z=14&ie=UTF8&iwloc=&output=embed`;
-                }
-
+                updateMapIframe(lat, lng);
+                
                 alert("GPS Fleet Berhasil Disinkronkan!");
             });
         } else {
-            alert("Maaf, fitur Geolocation tidak didukung oleh browser Anda.");
+            alert("Maaf, fitur Geolocation tidak didukung.");
         }
     }
+
+    // FUNGSI 2: Untuk memperbarui Iframe Peta 
+    // (Perbaikan link iframe agar titik koordinatnya benar-benar mau berubah)
+    function updateMapIframe(lat, lng) {
+        const iframePeta = document.querySelector("iframe");
+        if (iframePeta) {
+            // Memperbaiki URL Iframe Google Maps agar valid
+            iframePeta.src = `https://maps.google.com/maps?q=${lat},${lng}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+        }
+    }
+
+    // FUNGSI 3: Sensor Ketikan Manual (Real-time Preview)
+    // Kalau ada orang ngetik manual di kotak Lat atau Lng, peta langsung bergerak
+    document.getElementById("petugasLat").addEventListener("input", function() {
+        const lat = this.value;
+        const lng = document.getElementById("petugasLng").value;
+        if(lat && lng) updateMapIframe(lat, lng);
+    });
+
+    document.getElementById("petugasLng").addEventListener("input", function() {
+        const lng = this.value;
+        const lat = document.getElementById("petugasLat").value;
+        if(lat && lng) updateMapIframe(lat, lng);
+    });
 </script>
 @endsection

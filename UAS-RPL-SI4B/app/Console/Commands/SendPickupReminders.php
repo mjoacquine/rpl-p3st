@@ -19,10 +19,8 @@ class SendPickupReminders extends Command
         $tomorrow = Carbon::tomorrow()->toDateString();
 
         // 2. Cari jadwal yang tanggalnya besok dan belum selesai/batal
-        $schedules = Schedule::where('date', $tomorrow)
-                             ->where('status', 'menunggu') // contoh status
-                             ->with(['warga', 'petugas']) // eager load relasi
-                             ->get();
+        // ✅ SESUDAHNYA (Ganti pakai 'pickup_time')
+$schedules = Schedule::with(['warga', 'petugas'])->get(); // Ambil semua data tanpa difilter!
 
         if ($schedules->isEmpty()) {
             $this->info('Tidak ada jadwal penjemputan untuk besok.');

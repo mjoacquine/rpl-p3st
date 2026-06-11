@@ -35,6 +35,7 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
             <h4 class="fw-bold mb-1"><i class="fa-solid fa-map-location-dot text-success me-2"></i>Manifest Rute Jemputan</h4>
+            <p class="text-muted small mb-0">Urutan otomatis berdasarkan lokasi terdekat dari posisi Anda.</p>
         </div>
         
         <a href="{{ route('petugas.route.optimizeAll') }}" 
@@ -44,10 +45,16 @@
     </div>
 
     <div class="row mb-5">
-        @forelse($tasksToday as $task)
+        @forelse($tasksToday as $index => $task)
         <div class="col-md-6 mb-3">
-            <div class="card border-0 shadow-sm rounded-3">
+            <div class="card border-0 border-start border-4 border-success shadow-sm rounded-3 h-100">
                 <div class="card-body">
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                        <span class="badge bg-dark px-2 py-1"><i class="fa-solid fa-list-ol me-1"></i> Urutan #{{ $index + 1 }}</span>
+                        <span class="badge bg-info text-dark px-2 py-1"><i class="fa-solid fa-location-arrow me-1"></i> Estimasi Jarak: {{ $task->jarak_km ?? '0' }} Km</span>
+                    </div>
+
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <span class="badge bg-success p-2"><i class="fa-solid fa-clock me-1"></i> {{ \Carbon\Carbon::parse($task->pickup_time)->format('H:i') }} WIB</span>
                         <span class="small text-muted fw-bold">{{ $task->estimated_weight }} Kg</span>

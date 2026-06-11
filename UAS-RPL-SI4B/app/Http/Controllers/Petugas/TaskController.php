@@ -19,17 +19,44 @@ class TaskController extends Controller
     }
 
     public function index()
-    {
-        // Cari order masuk berstatus 'menunggu' yang belum diklaim petugas manapun
-        $availableTasks = DB::table('schedules')
-            ->join('users', 'schedules.warga_id', '=', 'users.id')
-            ->where('schedules.status', 'menunggu')
-            ->select('schedules.*', 'users.name as warga_name', 'users.address as warga_address')
-            ->orderBy('schedules.pickup_date', 'asc')
-            ->get();
+{
+    // 1. Ambil data petugas yang sedang login beserta koordinat terakhirnya
+    $petugas = auth()->user();
+    $latPetugas = $petugas->latitude;
+    $lngPetugas = $petugas->longitude;
 
-        return view('Petugas.Task.index', compact('availableTasks'));
+    // Pastikan petugas sudah set lokasi, jika belum beri nilai default (misal titik tengah kota)
+    if (!$latPetugas || !$lngPetugas) {
+        $latPetugas = -2.9909; 
+        $lngPetugas = 104.7565;
     }
+
+    // 2. Ambil jadwal penjemputan HARI INI yang berstatus 'menunggu'
+    // (Sesuaikan nama model 'Schedule' dengan yang kalian pakai)
+$jadwalMentah = \App\Models\Schedule::with('warga')
+                ->whereDate('pickup_time', today()) // ✅ UBAH JADI SEPERTI INI
+                ->where('status', 'menunggu')
+                ->get();
+    // 3. Proses Optimisasi Rute (Sorting dari jarak terdekat ke terjauh)
+    $ruteOptimal = $jadwalMentah->sortBy(function ($item) use ($latPetugas, $lngPetugas) {
+        // Kita hitung jarak antara Petugas dan lokasi Warga
+        $jarak = $this->hitungJarakHaversine(
+            $latPetugas,
+            $lngPetugas,
+            $item->warga->latitude, // Pastikan tabel warga punya kolom latitude
+            $item->warga->longitude // Pastikan tabel warga punya kolom longitude
+        );
+        
+        // Simpan hasil hitungan sementara ke dalam object agar bisa ditampilkan di Blade nanti
+        $item->jarak_km = round($jarak, 2); 
+
+        return $jarak; // Kembalikan nilai jarak untuk diurutkan oleh Laravel
+    })->values(); // values() digunakan untuk me-reset nomor urut array
+
+  // Simpan hasil sorting ke variabel yang namanya cocok dengan Blade kamu
+$tasksToday = $ruteOptimal; 
+return view('Petugas.Dashboard.index', compact('tasksToday'));
+}
 
     public function accept($id)
     {
@@ -78,4 +105,22 @@ class TaskController extends Controller
         $tasks = DB::table('schedules')->where('status', 'menunggu')->get();
         return response()->json(['status' => 'success', 'data' => $tasks]);
     }
+    private function hitungJarakHaversine($lat1, $lon1, $lat2, $lon2)
+{
+    $earthRadius = 6371; // Radius bumi dalam kilometer
+
+    // Ubah derajat ke radian
+    $dLat = deg2rad($lat2 - $lat1);
+    $dLon = deg2rad($lon2 - $lon1);
+
+    // Penerapan rumus Haversine
+    $a = sin($dLat / 2) * sin($dLat / 2) +
+         cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
+         sin($dLon / 2) * sin($dLon / 2);
+
+    $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+    $distance = $earthRadius * $c;
+
+    return $distance; // Akan menghasilkan jarak dalam satuan Kilometer (Km)
+}
 }

@@ -15,6 +15,11 @@
                 <li class="nav-item"><a class="nav-link" href="{{ route('warga.ecostats.index') }}"><i class="fa-solid fa-seedling me-1"></i> Dampak Lingkungan</a></li>
             </ul>
             <div class="d-flex align-items-center">
+                
+                <div class="me-3">
+                    @include('Layouts.Notification')
+                </div>
+
                 <span class="text-white me-3"><i class="fa-solid fa-user me-1"></i> {{ Auth::user()->name }}</span>
                 <form action="{{ route('logout') }}" method="POST" onsubmit="return confirm('Yakin ingin keluar?')">
                     @csrf

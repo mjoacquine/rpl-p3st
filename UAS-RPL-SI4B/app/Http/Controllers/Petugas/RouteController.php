@@ -54,20 +54,24 @@ class RouteController extends Controller
             $activeSchedules
         );
 
-        // 3. Susun URL Google Maps dengan Waypoints (Optimized)
+       // 3. Susun URL Google Maps dengan Waypoints (Optimized)
         $origin = $petugas->latitude . ',' . $petugas->longitude;
         
-        // Buat list waypoints dari koordinat warga
-        $waypoints = $optimizedSchedules->map(function($s) {
+        // Buat list waypoints dari koordinat warga (Titik tengah perjalanan)
+        // Kita keluarkan titik terakhir karena dia akan jadi 'destination'
+        $waypointsSchedules = $optimizedSchedules->slice(0, -1);
+        $waypoints = $waypointsSchedules->map(function($s) {
             return $s->warga->latitude . ',' . $s->warga->longitude;
         })->implode('|');
 
-        // Parameter &optimize=true memerintahkan Google menyusun urutan tercepat
+        // Titik akhir perjalanan
+        $destination = $optimizedSchedules->last()->warga->latitude . "," . $optimizedSchedules->last()->warga->longitude;
+
+        // Gunakan URL resmi Google Maps Directions API
         $mapsUrl = "https://www.google.com/maps/dir/?api=1" .
                    "&origin=" . $origin .
-                   "&destination=" . $optimizedSchedules->last()->warga->latitude . "," . $optimizedSchedules->last()->warga->longitude .
+                   "&destination=" . $destination .
                    "&waypoints=" . $waypoints .
-                   "&optimize=true" .
                    "&travelmode=driving";
 
         return redirect()->away($mapsUrl);
