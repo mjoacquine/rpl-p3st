@@ -62,6 +62,7 @@ class PickupReminder extends Notification
             'message'     => $pesan,
             'type'        => 'pickup_reminder',
             'pickup_time' => $this->schedule->pickup_time, // ✅ Sudah diganti agar tidak error!
+            'weight'      => $this->schedule->estimated_weight ?? '0',
         ];
     }
 }

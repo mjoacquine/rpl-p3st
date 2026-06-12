@@ -4,12 +4,17 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use App\Http\Controllers\AuthController;
-
+use Illuminate\Notifications\DatabaseNotification;
 // Controller Admin, Petugas, Warga
 use App\Http\Controllers\Admin\{DashboardController as AdminDashboard, CatalogController as AdminCatalog, ReportController as AdminReport, UserController as AdminUser};
 use App\Http\Controllers\Petugas\{DashboardController as PetugasDashboard, ProfileController as PetugasProfile, RouteController as PetugasRoute, TaskController as PetugasTask, TransactionController as PetugasTransaction};
 use App\Http\Controllers\Warga\{DashboardController as WargaDashboard, CatalogController as WargaCatalog, EcoStatsController as WargaEcoStats, ProfileController as WargaProfile, ScheduleController as WargaSchedule};
 
+/*
+|--------------------------------------------------------------------------
+| Public & Authentication Routes
+|--------------------------------------------------------------------------
+*/
 /*
 |--------------------------------------------------------------------------
 | Public & Authentication Routes
@@ -40,7 +45,83 @@ Route::middleware('auth')->group(function () {
         $request->user()->sendEmailVerificationNotification();
         return back()->with('message', 'Link verifikasi telah dikirim ulang!');
     })->middleware('throttle:6,1')->name('verification.send');
+
+    // 🔽 KUMPULAN RUTE NOTIFIKASI DI SINI 🔽
+    
+    // 1. Rute untuk Membaca (Read)
+    Route::get('/notifications/{id}/read', function ($id) {
+        $notification = \Illuminate\Notifications\DatabaseNotification::findOrFail($id);
+        $notification->markAsRead();
+        $scheduleId = $notification->data['schedule_id'];
+
+        if (auth()->user()->role === 'warga') { 
+            return redirect()->route('warga.dashboard')->with('success', 'Notifikasi telah dibaca.');
+        } else {
+            return redirect()->route('petugas.route.show', $scheduleId);
+        }
+    })->name('notification.read');
+
+    // 2. Rute untuk Menghapus Semua (Delete All) -> WAJIB DI ATAS {id}
+    Route::delete('/notifications/delete-all', function () {
+        auth()->user()->unreadNotifications()->delete();
+        return back();
+    })->name('notification.delete_all');
+
+    // 3. Rute untuk Menghapus Satuan (Delete)
+    Route::delete('/notifications/{id}/delete', function ($id) {
+        $notification = \Illuminate\Notifications\DatabaseNotification::findOrFail($id);
+        $notification->delete(); 
+        return back(); 
+    })->name('notification.delete');
+    
+    // 🔼 BATAS AKHIR RUTE NOTIFIKASI 🔼
 });
+    // 🔽 KUMPULAN RUTE NOTIFIKASI DI SINI 🔽
+    
+    // 1. Rute untuk Membaca (Read)
+    Route::get('/notifications/{id}/read', function ($id) {
+        $notification = DatabaseNotification::findOrFail($id);
+        $notification->markAsRead();
+        $scheduleId = $notification->data['schedule_id'];
+
+        if (auth()->user()->role === 'warga') { 
+            return redirect()->route('warga.dashboard')->with('success', 'Notifikasi telah dibaca.');
+        } else {
+            return redirect()->route('petugas.route.show', $scheduleId);
+        }
+    })->name('notification.read');
+
+ // 1. Rute untuk Membaca (Read)
+    Route::get('/notifications/{id}/read', function ($id) {
+        $notification = \Illuminate\Notifications\DatabaseNotification::findOrFail($id);
+        $notification->markAsRead();
+        $scheduleId = $notification->data['schedule_id'];
+
+        if (auth()->user()->role === 'warga') { 
+            return redirect()->route('warga.dashboard')->with('success', 'Notifikasi telah dibaca.');
+        } else {
+            return redirect()->route('petugas.route.show', $scheduleId);
+        }
+    })->name('notification.read');
+
+    // 2. Rute untuk Menghapus Semua (Delete All) -> WAJIB DI ATAS {id}
+    Route::delete('/notifications/delete-all', function () {
+        auth()->user()->unreadNotifications()->delete();
+        return back();
+    })->name('notification.delete_all');
+
+    // 3. Rute untuk Menghapus Satuan (Delete)
+    Route::delete('/notifications/{id}/delete', function ($id) {
+        $notification = \Illuminate\Notifications\DatabaseNotification::findOrFail($id);
+        $notification->delete(); 
+        return back(); 
+    })->name('notification.delete');
+/*
+|--------------------------------------------------------------------------
+| Portal Routes (Dilindungi RoleMiddleware)
+|--------------------------------------------------------------------------
+*/
+// ... (Kodingan route warga, petugas, admin di bawahnya biarkan saja)
 
 /*
 |--------------------------------------------------------------------------

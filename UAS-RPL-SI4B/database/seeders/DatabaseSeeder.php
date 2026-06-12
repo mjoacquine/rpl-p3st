@@ -12,6 +12,8 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             CatalogPriceSeeder::class,
             TransactionSeeder::class,
+            ScheduleSeeder::class, 
+
         ]);
     }
 }
