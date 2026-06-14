@@ -19,12 +19,14 @@ class VerifyEmailNotification extends Notification
 
     public function toMail($notifiable)
     {
+        // Membuat link verifikasi yang aman dan akan expired dalam 60 menit
         $verificationUrl = URL::temporarySignedRoute(
             'verification.verify',
             Carbon::now()->addMinutes(60),
             ['id' => $notifiable->getKey(), 'hash' => sha1($notifiable->getEmailForVerification())]
         );
 
+        // Desain dan isi pesan email yang dikirim ke user
         return (new MailMessage)
             ->subject('Verifikasi Akun P3ST Palembang')
             ->greeting('Halo, ' . $notifiable->name . '!')

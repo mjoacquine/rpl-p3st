@@ -17,7 +17,9 @@ class User extends Authenticatable implements MustVerifyEmail
         'name', 'email', 'password', 'role', 'phone', 'address', 'latitude', 'longitude', 'google_id',
     ];
 
-    protected $hidden = ['password', 'remember_token'];
+    protected $hidden = [
+        'password', 'remember_token'
+    ];
 
     protected $casts = [
         'email_verified_at' => 'datetime',
@@ -26,6 +28,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'longitude' => 'decimal:10',
     ];
 
+    // Method ini yang menghubungkan User dengan file VerifyEmailNotification
     public function sendEmailVerificationNotification()
     {
         $this->notify(new VerifyEmailNotification);
