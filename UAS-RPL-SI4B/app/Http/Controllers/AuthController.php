@@ -44,7 +44,7 @@ class AuthController extends Controller
 
             // Cek verifikasi email HANYA untuk warga yang daftar via form (bukan Google)
             if ($user->role === 'warga' && !$user->hasVerifiedEmail() && is_null($user->google_id)) {
-                Auth::logout();
+                
                 return redirect()->route('verification.notice')
                     ->with('error', 'Akun Warga belum diverifikasi. Silakan cek email Anda.');
             }
@@ -116,14 +116,21 @@ class AuthController extends Controller
         }
     }
 
-    private function redirectBasedOnRole($user)
+   private function redirectBasedOnRole($user)
     {
+        // Ubah role jadi huruf kecil semua biar pencocokannya aman
         $role = strtolower($user->role);
-        if ($role === 'admin') return redirect()->route('admin.dashboard');
-        if ($role === 'petugas') return redirect()->route('petugas.dashboard');
+        
+        // Gunakan variabel $role yang baru saja dikonversi di atas
+        if ($role === 'admin') {
+            return redirect()->route('admin.dashboard');
+        } elseif ($role === 'petugas') {
+            return redirect()->route('petugas.dashboard');
+        }
+        
+        // Jika bukan admin dan bukan petugas, otomatis lempar ke warga
         return redirect()->route('warga.dashboard');
     }
-    
     public function logout(Request $request)
     {
         Auth::logout();

@@ -5,10 +5,12 @@ use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use App\Http\Controllers\AuthController;
 use Illuminate\Notifications\DatabaseNotification;
+
 // Controller Admin, Petugas, Warga
 use App\Http\Controllers\Admin\{DashboardController as AdminDashboard, CatalogController as AdminCatalog, ReportController as AdminReport, UserController as AdminUser};
 use App\Http\Controllers\Petugas\{DashboardController as PetugasDashboard, ProfileController as PetugasProfile, RouteController as PetugasRoute, TaskController as PetugasTask, TransactionController as PetugasTransaction};
 use App\Http\Controllers\Warga\{DashboardController as WargaDashboard, CatalogController as WargaCatalog, EcoStatsController as WargaEcoStats, ProfileController as WargaProfile, ScheduleController as WargaSchedule};
+
 
 /*
 |--------------------------------------------------------------------------
@@ -32,7 +34,10 @@ Route::middleware('guest')->group(function () {
     Route::get('/auth/google', [AuthController::class, 'redirectToGoogle'])->name('auth.google');
     Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback']);
 });
-
+Route::get('/email/verify', function () {
+    // Penulisannya: NamaFolder.NamaFile (tanpa .blade.php)
+    return view('Auth.verify-email'); 
+})->middleware('auth')->name('verification.notice');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
 Route::middleware('auth')->group(function () {
