@@ -60,10 +60,12 @@ class RouteController extends Controller
         // Buat list waypoints dari koordinat warga (Titik tengah perjalanan)
         // Kita keluarkan titik terakhir karena dia akan jadi 'destination'
         $waypointsSchedules = $optimizedSchedules->slice(0, -1);
-        $waypoints = $waypointsSchedules->map(function($s) {
-            return $s->warga->latitude . ',' . $s->warga->longitude;
-        })->implode('|');
-
+        $waypoints = '';
+        if ($waypointsSchedules->isNotEmpty()) {
+            $waypoints = "&waypoints=" . $waypointsSchedules->map(function($s) {
+                return $s->warga->latitude . ',' . $s->warga->longitude;
+            })->implode('|');
+        }
         // Titik akhir perjalanan
         $destination = $optimizedSchedules->last()->warga->latitude . "," . $optimizedSchedules->last()->warga->longitude;
 

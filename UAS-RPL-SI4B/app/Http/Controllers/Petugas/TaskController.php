@@ -54,7 +54,11 @@ $jadwalMentah = \App\Models\Schedule::with('warga')
     })->values(); // values() digunakan untuk me-reset nomor urut array
 
   // Simpan hasil sorting ke variabel yang namanya cocok dengan Blade kamu
-$tasksToday = $ruteOptimal; 
+$availableTasks = $ruteOptimal; 
+
+        // 👇 INI DIA BARIS YANG HILANG BANG! 👇
+        return view('Petugas.Task.index', compact('availableTasks'));
+    
 return view('Petugas.Dashboard.index', compact('tasksToday'));
 }
 
@@ -64,7 +68,7 @@ return view('Petugas.Dashboard.index', compact('tasksToday'));
         
         // Memasukkan petugas ke jadwal dan otomatis mengubah status menjadi 'diproses' / 'diterima' di dalam service
         $this->scheduleProcessor->assignPetugasToSchedule($schedule, Auth::id());
-
+        
         return redirect()->route('petugas.dashboard')->with('success', 'Penjemputan berhasil dikonfirmasi dan masuk ke rute harian Anda.');
     }
 

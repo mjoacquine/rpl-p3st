@@ -160,11 +160,14 @@ Route::middleware(['auth', 'role:warga'])->prefix('warga')->name('warga.')->grou
 Route::middleware(['role:petugas'])->prefix('petugas')->name('petugas.')->group(function () {
     Route::get('/dashboard', [PetugasDashboard::class, 'index'])->name('dashboard');
     Route::get('/task', [PetugasTask::class, 'index'])->name('task.index');
-    Route::post('/task/{id}/accept', [PetugasTask::class, 'accept'])->name('task.accept');
+    Route::post('/task/{id}/accept', [App\Http\Controllers\Petugas\TaskController::class, 'accept'])
+    ->name('task.accept');
     Route::post('/task/{id}/arrived', [PetugasTask::class, 'arrived'])->name('task.arrived');
 
+
+     Route::get('/route/optimize-all', [\App\Http\Controllers\Petugas\RouteController::class, 'optimizeAll'])->name('route.optimizeAll');
     Route::get('/route/{scheduleId}', [PetugasRoute::class, 'show'])->name('route.show');
-    Route::get('/route/optimize-all', [PetugasRoute::class, 'optimizeAll'])->name('route.optimizeAll');
+   
     
     Route::get('/transaction/{scheduleId}/edit', [PetugasTransaction::class, 'edit'])->name('transaction.edit');
     Route::put('/transaction/{scheduleId}', [PetugasTransaction::class, 'update'])->name('transaction.update');
