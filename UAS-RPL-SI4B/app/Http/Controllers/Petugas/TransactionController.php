@@ -116,4 +116,14 @@ class TransactionController extends Controller
 
         return view('Warga.Schedule.receipt', compact('schedule', 'transaction'));
     }
+    public function history()
+{
+    // Mengambil semua data transaksi beserta data warga (user) yang melakukan transaksi
+    $transactions = \App\Models\Transaction::with('schedule.warga')
+        ->orderBy('created_at', 'desc')
+        ->get();
+
+    // Melempar data ke view yang ada di folder views/Petugas/Transaction/index.blade.php
+    return view('Petugas.Transaction.index', compact('transactions'));
+}
 }

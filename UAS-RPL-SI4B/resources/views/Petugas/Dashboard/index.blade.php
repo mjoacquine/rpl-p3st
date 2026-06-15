@@ -8,9 +8,11 @@
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="petugasNav">
-            <ul class="navbar-nav me-auto">
+          <ul class="navbar-nav me-auto">
                 <li class="nav-item"><a class="nav-link" href="{{ route('petugas.dashboard') }}"><i class="fa-solid fa-route me-1"></i> Rute Hari Ini</a></li>
                 <li class="nav-item"><a class="nav-link" href="{{ route('petugas.task.index') }}"><i class="fa-solid fa-hand-holding-hand me-1"></i> Ambil Order</a></li>
+                
+                <li class="nav-item"><a class="nav-link" href="{{ route('petugas.transaction.history') }}"><i class="fa-solid fa-clock-rotate-left me-1"></i> Riwayat Transaksi</a></li>
             </ul>
             <div class="d-flex align-items-center">
                 <span class="text-white me-3"><i class="fa-solid fa-id-card me-1"></i> Kolektor: {{ Auth::user()->name }}</span>

@@ -23,13 +23,19 @@ class Transaction extends Model
         'price_final' => 'decimal:2',
     ];
 
+   // Transaksi nyambung ke Schedule
     public function schedule()
     {
-        return $this->belongsTo(Schedule::class, 'schedule_id');
+        return $this->belongsTo(Schedule::class, 'schedule_id', 'id');
     }
 
     public function catalogPrice()
     {
         return $this->belongsTo(CatalogPrice::class, 'category_id', 'category_id');
+    }
+    // Relasi ke tabel users (Warga)
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id', 'id'); 
     }
 }

@@ -24,7 +24,7 @@ class Schedule extends Model
         'estimated_weight' => 'decimal:2',
     ];
 
-    public function warga() { return $this->belongsTo(User::class, 'warga_id'); }
+    public function warga() { return $this->belongsTo(User::class, 'warga_id', 'id'); }
     public function petugas() { return $this->belongsTo(User::class, 'petugas_id'); }
     public function transaction() { return $this->hasOne(Transaction::class, 'schedule_id'); }
 }

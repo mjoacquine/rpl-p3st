@@ -175,6 +175,9 @@ Route::middleware(['role:petugas'])->prefix('petugas')->name('petugas.')->group(
     Route::put('/profile', [PetugasProfile::class, 'update'])->name('profile.update');
     Route::put('/profile/password', [PetugasProfile::class, 'updatePassword'])->name('profile.password');
     Route::put('/profile/location', [PetugasProfile::class, 'updateLocation'])->name('profile.location');
+
+    Route::get('/riwayat-transaksi', [App\Http\Controllers\Petugas\TransactionController::class, 'history'])
+        ->name('transaction.history');
 });
 
 // --- ADMIN ROUTES ---
