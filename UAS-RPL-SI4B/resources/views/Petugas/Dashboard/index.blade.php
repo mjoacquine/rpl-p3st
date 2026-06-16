@@ -65,9 +65,17 @@
                     <p class="card-text text-secondary small mb-3"><i class="fa-solid fa-location-dot text-danger me-1"></i> {{ $task->warga_address }}</p>
                     
                     <div class="d-grid gap-2 d-flex">
-                        <a href="{{ route('petugas.route.show', $task->id) }}" class="btn btn-sm btn-outline-primary flex-fill fw-bold"><i class="fa-solid fa-map-marked-alt me-1"></i> Buka Rute</a>
-                        <a href="{{ route('petugas.transaction.edit', $task->id) }}" class="btn btn-sm btn-success flex-fill fw-bold"><i class="fa-solid fa-scale-balanced me-1"></i> Timbang</a>
-                    </div>
+    <a href="{{ route('petugas.route.show', $task->id) }}" class="btn btn-sm btn-outline-primary flex-fill fw-bold"><i class="fa-solid fa-map-marked-alt me-1"></i> Buka Rute</a>
+    
+    <form action="{{ route('petugas.task.reminder', $task->id) }}" method="POST" class="flex-fill mb-0">
+        @csrf
+        <button type="submit" class="btn btn-sm btn-warning w-100 fw-bold text-dark shadow-sm">
+            <i class="fa-solid fa-bell me-1"></i> Ingatkan
+        </button>
+    </form>
+    
+    <a href="{{ route('petugas.transaction.edit', $task->id) }}" class="btn btn-sm btn-success flex-fill fw-bold"><i class="fa-solid fa-scale-balanced me-1"></i> Timbang</a>
+</div>
                 </div>
             </div>
         </div>

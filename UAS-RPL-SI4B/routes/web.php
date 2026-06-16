@@ -163,7 +163,9 @@ Route::middleware(['role:petugas'])->prefix('petugas')->name('petugas.')->group(
     Route::post('/task/{id}/accept', [App\Http\Controllers\Petugas\TaskController::class, 'accept'])
     ->name('task.accept');
     Route::post('/task/{id}/arrived', [PetugasTask::class, 'arrived'])->name('task.arrived');
-
+    // Rute untuk memicu pengingat ke warga
+    Route::post('/task/{id}/reminder', [\App\Http\Controllers\Petugas\RouteController::class, 'sendReminder'])
+        ->name('task.reminder');
 
      Route::get('/route/optimize-all', [\App\Http\Controllers\Petugas\RouteController::class, 'optimizeAll'])->name('route.optimizeAll');
     Route::get('/route/{scheduleId}', [PetugasRoute::class, 'show'])->name('route.show');

@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Schedule;
 use App\Services\RouteOptimizer;
 use Illuminate\Support\Facades\Auth;
-
+use App\Notifications\SendReminderNotification;
 class RouteController extends Controller
 {
     protected $routeOptimizer;
@@ -33,6 +33,25 @@ class RouteController extends Controller
     /**
      * BARU: Optimasi Semua Rute Aktif
      */
+    public function sendReminder($id)
+{
+    // 1. Cari data jadwal penjemputan beserta warga pemesannya
+    $schedule = Schedule::with('warga')->findOrFail($id);
+    $warga = $schedule->warga;
+
+    // Keamanan: Cek jika data warga kosong
+    if (!$warga) {
+        return redirect()->back()->with('error', 'Gagal mengirim pengingat: Data warga tidak ditemukan.');
+    }
+
+    // 2. TRIGGER NOTIFIKASI KUNING!
+    // Memanggil file notifikasi pengingat dan mengirimkannya ke akun warga
+    // (Pastikan nama class Notification-mu sudah di-import di atas atau disesuaikan namanya)
+    $warga->notify(new \App\Notifications\SendReminderNotification($schedule));
+
+    // 3. Kembalikan ke halaman sebelumnya dengan pesan sukses
+    return redirect()->back()->with('success', 'Pesan pengingat berhasil dikirim! Lonceng warga kini telah menyala kuning.');
+}
     public function optimizeAll()
     {
         $petugas = Auth::user();

@@ -17,7 +17,7 @@ class DashboardController extends Controller
         $tasksToday = DB::table('schedules')
             ->join('users', 'schedules.warga_id', '=', 'users.id')
             ->where('schedules.petugas_id', $petugasId)
-            ->where('schedules.pickup_date', Carbon::now()->toDateString())
+            ->where('schedules.pickup_date', '>=', Carbon::now()->toDateString())
             ->whereIn('schedules.status', ['dikonfirmasi', 'diproses'])
             ->select('schedules.*', 'users.name as warga_name', 'users.address as warga_address')
             ->get();

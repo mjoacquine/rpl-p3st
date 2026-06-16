@@ -34,7 +34,7 @@ class ScheduleController extends Controller
         return view('Warga.Schedule.create', compact('categories'));
     }
 
-    public function store(Request $request)
+   public function store(Request $request)
     {
         $request->validate([
             'pickup_date' => 'required|date',
@@ -59,6 +59,11 @@ class ScheduleController extends Controller
             'status' => 'menunggu',
             'notes' => $request->notes,
         ]);
+
+        // === 🚀 PEMICU NOTIFIKASI KE LONCENG PETUGAS 🚀 ===
+        $semuaPetugas = \App\Models\User::where('role', 'petugas')->get();
+        \Illuminate\Support\Facades\Notification::send($semuaPetugas, new \App\Notifications\OrderMasukNotification($schedule));
+        // =================================================
 
         try {
             $notification = new WhatsappNotification();
