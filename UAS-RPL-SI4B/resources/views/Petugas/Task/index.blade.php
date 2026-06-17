@@ -66,11 +66,14 @@
                                 </span>
                             </td>
                             <td>
-                                <span class="fw-bold text-dark d-block">{{ $task->warga_name }}</span>
+                                <!-- PERBAIKAN: Memanggil nama warga via relasi model atau data fallback -->
+                                <span class="fw-bold text-dark d-block">{{ $task->warga->name ?? $task->warga_name ?? 'Nama Tidak Ditemukan' }}</span>
                                 <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 mt-1">Status: Menunggu</span>
                             </td>
                             <td class="small text-muted text-start">
-                                <i class="fa-solid fa-location-dot text-danger me-1"></i> {{ Str::limit($task->warga_address, 45) }}
+                                <!-- PERBAIKAN: Memanggil alamat warga via relasi model agar teksnya muncul di samping ikon pin -->
+                                <i class="fa-solid fa-location-dot text-danger me-1"></i> 
+                                {{ Str::limit($task->warga->address ?? $task->warga_address ?? 'Alamat Belum Diatur', 45) }}
                             </td>
                             <td>
                                 <span class="badge bg-secondary px-3 py-2 rounded-pill shadow-sm">
