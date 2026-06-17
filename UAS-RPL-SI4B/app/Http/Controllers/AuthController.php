@@ -72,7 +72,8 @@ class AuthController extends Controller
         
         // --- BARIS EMAIL DIMATIKAN ---
         // $user->sendEmailVerificationNotification();
-
+            $user->email_verified_at = now();
+        $user->save();
         // --- ARAHKAN LANGSUNG KE LOGIN DENGAN PESAN BARU ---
         return redirect()->route('login')->with('success', 'Registrasi berhasil! Silakan login dengan akun Anda.');
     }
