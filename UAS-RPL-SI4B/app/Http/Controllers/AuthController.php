@@ -70,11 +70,11 @@ class AuthController extends Controller
         
         $user = $this->userDao->create($data);
         
-        // --- PERUBAHAN ADA DI SINI ---
-        // Memaksa (bypass) Laravel untuk langsung mengirim email notifikasi tanpa lewat sistem Event
-        $user->sendEmailVerificationNotification();
+        // --- BARIS EMAIL DIMATIKAN ---
+        // $user->sendEmailVerificationNotification();
 
-        return redirect()->route('login')->with('success', 'Registrasi berhasil! Silakan cek email Anda untuk verifikasi.');
+        // --- ARAHKAN LANGSUNG KE LOGIN DENGAN PESAN BARU ---
+        return redirect()->route('login')->with('success', 'Registrasi berhasil! Silakan login dengan akun Anda.');
     }
 
     // --- METHOD GOOGLE ---
